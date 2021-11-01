@@ -1,0 +1,9 @@
+
+DOCUMENTATION:
+https://docs.python.org/3/library/ssl.html
+https://docs.python.org/3/howto/sockets.html
+
+
+VIDEO TUTORIAL:
+https://www.youtube.com/watch?v=aTS7FBz3KLI
+
