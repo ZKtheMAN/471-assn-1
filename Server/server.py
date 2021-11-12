@@ -4,7 +4,7 @@ import time
 import os
 import struct
 
-print ("\nWelcome to our FTP server Server Example.\n\nTo get started, connect a client by opening a second terminal and running the client.py file.")
+print("\nWelcome to our FTP server Server Example.\n\nTo get started, connect a client by opening a second terminal and running the client.py file.")
 
 # Initialise socket stuff
 TCP_IP = "127.0.0.1" # Only a local server
@@ -15,10 +15,10 @@ s.bind((TCP_IP, TCP_PORT))
 s.listen(1)
 conn, addr = s.accept()
 
-print ("\nConnected to the server sucessful...".format(addr))
+print("\nConnected to the server sucessful...".format(addr))
 
 def list_files():
-    print ("Listing files:")
+    print("Listing files:")
     # Get list of files in directory
     listing = os.listdir(os.getcwd())
     # Send over the number of files, so the client knows what to expect (and avoid some errors)
@@ -39,5 +39,32 @@ def list_files():
     conn.send(struct.pack("i", total_directory_size))
     #Final check
     conn.recv(BUFFER_SIZE)
-    print ("The Files have been successfully Listed!")
+    print("The Files have been successfully Listed!")
+    return
+
+def upld():
+    # Send message once server is ready to recieve file details
+    conn.send("1")
+    # Recieve file name length, then file name
+    file_name_size = struct.unpack("h", conn.recv(2))[0]
+    file_name = conn.recv(file_name_size)
+    # Send message to let client know server is ready for document content
+    conn.send("1")
+    # Recieve file size
+    file_size = struct.unpack("i", conn.recv(4))[0]
+    # Initialise and enter loop to recive file content
+    start_time = time.time()
+    output_file = open(file_name, "wb")
+    # This keeps track of how many bytes we have recieved, so we know when to stop the loop
+    bytes_recieved = 0
+    print("\nRecieving the file...")
+    while bytes_recieved < file_size:
+        l = conn.recv(BUFFER_SIZE)
+        output_file.write(l)
+        bytes_recieved += BUFFER_SIZE
+    output_file.close()
+    print("\nFile has been Recieved: {}".format(file_name))
+    # Send upload performance details
+    conn.send(struct.pack("f", time.time() - start_time))
+    conn.send(struct.pack("i", file_size))
     return

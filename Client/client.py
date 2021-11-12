@@ -14,20 +14,20 @@ def conn():
     print("Sending server request...")
     try:
         s.connect((TCP_IP, TCP_PORT))
-        print ("Connection sucessful")
+        print("Connection sucessful")
     except:
-        print ("Connection unsucessful. Make sure the server is online.")
+        print("Connection unsucessful. Make sure the server is online.")
 
 
 def list_files():
     # List the files avaliable on the file server
     # Called list_files(), not list() (as in the format of the others) to avoid the standard python function list()
-    print ("Requesting files...\n")
+    print("Requesting files...\n")
     try:
         # Send list request
         s.send("LIST")
     except:
-        print ("Couldn't make server request. Make sure a connection has bene established.")
+        print("Couldn't make server request. Make sure a connection has bene established.")
         return
     try:
         # First get the number of files in the directory
@@ -39,22 +39,68 @@ def list_files():
             file_name = s.recv(file_name_size)
             # Also get the file size for each item in the server
             file_size = struct.unpack("i", s.recv(4))[0]
-            print ("\t{} - {}b".format(file_name, file_size))
+            print("\t{} - {}b".format(file_name, file_size))
             # Make sure that the client and server are syncronised
             s.send("1")
         # Get total size of directory
         total_directory_size = struct.unpack("i", s.recv(4))[0]
-        print ("Size: {}b".format(total_directory_size))
+        print("Size: {}b".format(total_directory_size))
     except:
-        print ("No listing found")
+        print("No listing found")
         return
     try:
         # Final check
         s.send("1")
         return
     except:
-        print ("No server confirmation")
+        print("No server confirmation")
         return
+
+def upld(file_name):
+    # Upload a file
+    print ("\nUploading the file to the server: {}...".format(file_name))
+    try:
+        # Check the file exists
+        content = open(file_name, "rb")
+    except:
+        print ("Couldn't open file. Make sure the file name was spelled correctly.")
+        return
+    try:
+        # Make upload request
+        s.send("UPLD")
+    except:
+        print("Couldn't make server request. Make sure the server is running.")
+        return
+    try:
+        # Wait for server acknowledgement then send file details
+        # Wait for server ok
+        s.recv(BUFFER_SIZE)
+        # Send file name size and file name
+        s.send(struct.pack("h", sys.getsizeof(file_name)))
+        s.send(file_name)
+        # Wait for server ok then send file size
+        s.recv(BUFFER_SIZE)
+        s.send(struct.pack("i", os.path.getsize(file_name)))
+    except:
+        print("Error: Cannot send file details")
+    try:
+        # Send the file in chunks defined by BUFFER_SIZE
+        # Doing it this way allows for unlimited potential file sizes to be sent
+        l = content.read(BUFFER_SIZE)
+        print("\nSending...")
+        while l:
+            s.send(l)
+            l = content.read(BUFFER_SIZE)
+        content.close()
+        # Get upload performance details
+        upload_time = struct.unpack("f", s.recv(4))[0]
+        upload_size = struct.unpack("i", s.recv(4))[0]
+        print("\nSent file: {}\nTime taken: {}s\nFile size: {}b".format(file_name, upload_time, upload_size))
+    except:
+        print("Error sending file")
+        return
+    return
+
 
 
 print ("\n\nWelcome to the FTP client."
