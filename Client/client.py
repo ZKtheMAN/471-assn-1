@@ -14,9 +14,9 @@ def conn():
     print("Sending server request...")
     try:
         s.connect((TCP_IP, TCP_PORT))
-        print("Connection sucessful")
+        print("Connection successful")
     except:
-        print("Connection unsucessful. Make sure the server is online.")
+        print("Connection unsuccessful. Make sure the server is online.")
 
 
 def list_files():
@@ -40,7 +40,7 @@ def list_files():
             # Also get the file size for each item in the server
             file_size = struct.unpack("i", s.recv(4))[0]
             print("\t{} - {}b".format(file_name, file_size))
-            # Make sure that the client and server are syncronised
+            # Make sure that the client and server are synchronized
             s.send("1")
         # Get total size of directory
         total_directory_size = struct.unpack("i", s.recv(4))[0]
@@ -101,13 +101,81 @@ def upld(file_name):
         return
     return
 
+def quit_client():
+    print("Qutting.")
 
 
-print ("\n\nWelcome to the FTP client."
-       "\n\nPlease type one of the following functions :" 
-       "\nCONN           : Connect to server"
-       "\nUPLD file_path : Upload a file to the server folder"
-       "\nLIST           : List all the files"
-       "\nDWLD file_path : Download a file from the server"
-       "\nDELF file_path : Delete a file"
-       "\nQUIT           : Exit the program")
+def download(path):
+    print("Downloading " + path)
+
+
+def delete_file(path):
+    print("Deleting" + path)
+
+def main():
+    running = True
+    print ("\n\nWelcome to the FTP client."
+        "\n\nPlease type one of the following functions :" 
+        "\nCONN ipv4 port : Connect to server"
+        "\nUPLD file_path : Upload a file to the server folder"
+        "\nLIST           : List all the files"
+        "\nDWLD file_path : Download a file from the server"
+        "\nDELF file_path : Delete a file"
+        "\nQUIT           : Exit the program")
+    while running:
+        original_input = raw_input('FTP CLIENT> ').split(' ')
+        user_input = original_input
+        if user_input[0].upper() == "CONN":
+            user_input = [s for s in user_input if s != '']
+            # IP Address Validation
+            # From: https://stackoverflow.com/a/319298/2923706
+            try:
+                socket.inet_pton(socket.AF_INET, user_input[1])
+                if isinstance(int(user_input[2]),int):
+                    TCP_IP = user_input[1]
+                    TCP_PORT = user_input[2]
+                    conn()
+            except socket.error:
+                print("Error: Invalid IPV4 address \"" + user_input[1] + "\"")
+            except ValueError:
+                print("Error: Invalid port number \"" + user_input[2] + "\"")
+            except IndexError:
+                print("Error: Command incomplete!")
+        elif user_input[0].upper() == "UPLD":
+            try:
+                file_path = [s if s!= '' else ' ' for s in original_input[1:]].join()
+                upld(file_path)
+            except IndexError:
+                print("Error: Command incomplete!")
+        elif user_input[0].upper() == "LIST":
+            list_files()
+            pass
+        elif user_input[0].upper() == "DWLD":
+            try:
+                file_path = [s if s!= '' else ' ' for s in original_input[1:]].join()
+                download(file_path)
+            except IndexError:
+                print("Error: Command incomplete!")
+        elif user_input[0].upper() == "DELF":
+            try:
+                file_path = [s if s!= '' else ' ' for s in original_input[1:]].join()
+                delete_file(file_path)
+            except IndexError:
+                print("Error: Command incomplete!")
+        elif user_input[0].upper() == "QUIT":
+            quit_client()
+            running = False
+        else:
+            print("ERROR: Invalid function!")
+            print("Please type one of the following functions :" 
+                "\nCONN ip port   : Connect to server"
+                "\nUPLD file_path : Upload a file to the server folder"
+                "\nLIST           : List all the files"
+                "\nDWLD file_path : Download a file from the server"
+                "\nDELF file_path : Delete a file"
+                "\nQUIT           : Exit the program")
+
+        print(user_input)
+
+
+main()
