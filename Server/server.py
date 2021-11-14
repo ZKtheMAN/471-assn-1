@@ -95,7 +95,7 @@ def delf():
             print ("Failed to delete {}".format(file_name))
             conn.send(struct.pack("i", -1))
     else:
-        print ("Delete abandoned by client!")
+        print ("Delete not completed: User error")
         return
 
 

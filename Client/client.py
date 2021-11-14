@@ -23,7 +23,7 @@ def list_files():
     try:
         s.send("LIST")
     except:
-        print("Couldn't make server request. Make sure a connection has bene established.")
+        print("Connection unsuccessful. Make sure the server is online.")
         return
     try:
         number_of_files = struct.unpack("i", s.recv(4))[0]
@@ -88,7 +88,7 @@ def dwld(file_name):
     try:
         s.send("DWLD")
     except:
-        print ("Couldn't make server request. Make sure a connection has bene established.")
+        print ("Couldn't make server request. Make sure the server is running.")
         return
     try:
         s.recv(BUFFER_SIZE)
@@ -96,7 +96,7 @@ def dwld(file_name):
         s.send(file_name)
         file_size = struct.unpack("i", s.recv(4))[0]
         if file_size == -1:
-            print ("File does not exist. Make sure the name was entered correctly")
+            print ("Couldn't open file. Make sure the file name was spelled correctly")
             return
     except:
         print ("Error checking file")
@@ -126,7 +126,7 @@ def delf(file_name):
         s.send("DELF")
         s.recv(BUFFER_SIZE)
     except:
-        print ("Couldn't connect to server. Make sure a connection has been established.")
+        print ("Couldn't make server request. Make sure the server is running.")
         return
     try:
         s.send(struct.pack("h", sys.getsizeof(file_name)))
@@ -140,7 +140,7 @@ def delf(file_name):
             print ("The file does not exist on server")
             return
     except:
-        print ("Couldn't determine file existance")
+        print ("Couldn't find file.")
         return
     try:
         confirm_delete = input("Are you sure you want to delete {}? (Y/N)\n".format(file_name)).upper()
@@ -162,7 +162,7 @@ def delf(file_name):
                 return
         else:
             s.send("N")
-            print("Delete abandoned by user!")
+            print("Delete not completed: User error")
             return
     except:
         print("Couldn't delete file")
@@ -176,14 +176,14 @@ def quit():
     return
 
 
-print("\n\nWelcome to the FTP client."
-       "\n\nPlease type one of the following functions :" 
-       "\nCONN           : Connect to server"
-       "\nUPLD file_path : Upload a file to the server folder"
-       "\nLIST           : List all the files"
-       "\nDWLD file_path : Download a file from the server"
-       "\nDELF file_path : Delete a file"
-       "\nQUIT           : Exit the program")
+#print("\n\nWelcome to the FTP client."
+       #"\n\nPlease type one of the following functions :"
+       #"\nCONN           : Connect to server"
+       #"\nUPLD file_path : Upload a file to the server folder"
+       #"\nLIST           : List all the files"
+       #"\nDWLD file_path : Download a file from the server"
+       #"\nDELF file_path : Delete a file"
+       #"\nQUIT           : Exit the program")
 
 
 def delete_file(path):
@@ -200,7 +200,7 @@ def main():
         "\nDELF file_path : Delete a file"
         "\nQUIT           : Exit the program")
     while running:
-        original_input = raw_input('FTP CLIENT> ').split(' ')
+        original_input = input('FTP CLIENT> ').split(' ')
         user_input = original_input
         if user_input[0].upper() == "CONN":
             user_input = [s for s in user_input if s != '']
@@ -230,7 +230,7 @@ def main():
         elif user_input[0].upper() == "DWLD":
             try:
                 file_path = [s if s!= '' else ' ' for s in original_input[1:]].join()
-                download(file_path)
+                dwld(file_path)
             except IndexError:
                 print("Error: Command incomplete!")
         elif user_input[0].upper() == "DELF":
