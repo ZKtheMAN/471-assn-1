@@ -6,10 +6,10 @@ import struct
 
 print("\nWelcome to our FTP server Server Example.\n\nTo get started, connect a client by opening a second terminal and running the client.py file.")
 
-# Initialise socket stuff
-TCP_IP = "127.0.0.1" # Only a local server
-TCP_PORT = 1456 # Just a random choice
-BUFFER_SIZE = 1024 # Standard size
+
+TCP_IP = "127.0.0.1"
+TCP_PORT = 1456
+BUFFER_SIZE = 1024
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((TCP_IP, TCP_PORT))
 s.listen(1)
@@ -19,43 +19,28 @@ print("\nConnected to the server sucessful...".format(addr))
 
 def list_files():
     print("Listing files:")
-    # Get list of files in directory
     listing = os.listdir(os.getcwd())
-    # Send over the number of files, so the client knows what to expect (and avoid some errors)
     conn.send(struct.pack("i", len(listing)))
     total_directory_size = 0
-    # Send over the file names and sizes whilst totaling the directory size
     for i in listing:
-        # File name size
         conn.send(struct.pack("i", sys.getsizeof(i)))
-        # File name
         conn.send(i)
-        # File content size
         conn.send(struct.pack("i", os.path.getsize(i)))
         total_directory_size += os.path.getsize(i)
-        # Make sure that the client and server are syncronised
         conn.recv(BUFFER_SIZE)
-    # Sum of file sizes in directory
     conn.send(struct.pack("i", total_directory_size))
-    #Final check
     conn.recv(BUFFER_SIZE)
     print("The Files have been successfully Listed!")
     return
 
-def upld():
-    # Send message once server is ready to recieve file details
+def put():
     conn.send("1")
-    # Recieve file name length, then file name
     file_name_size = struct.unpack("h", conn.recv(2))[0]
     file_name = conn.recv(file_name_size)
-    # Send message to let client know server is ready for document content
     conn.send("1")
-    # Recieve file size
     file_size = struct.unpack("i", conn.recv(4))[0]
-    # Initialise and enter loop to recive file content
     start_time = time.time()
     output_file = open(file_name, "wb")
-    # This keeps track of how many bytes we have recieved, so we know when to stop the loop
     bytes_recieved = 0
     print("\nRecieving the file...")
     while bytes_recieved < file_size:
@@ -63,8 +48,76 @@ def upld():
         output_file.write(l)
         bytes_recieved += BUFFER_SIZE
     output_file.close()
-    print("\nFile has been Recieved: {}".format(file_name))
-    # Send upload performance details
+    print("\nFile Recieved: {}".format(file_name))
     conn.send(struct.pack("f", time.time() - start_time))
     conn.send(struct.pack("i", file_size))
     return
+
+def dwld():
+    conn.send("1")
+    file_name_length = struct.unpack("h", conn.recv(2))[0]
+    print (file_name_length)
+    file_name = conn.recv(file_name_length)
+    print (file_name)
+    if os.path.isfile(file_name):
+        conn.send(struct.pack("i", os.path.getsize(file_name)))
+    else:
+        print ("File name not valid")
+        conn.send(struct.pack("i", -1))
+        return
+    conn.recv(BUFFER_SIZE)
+    start_time = time.time()
+    print ("Sending file...")
+    content = open(file_name, "rb")
+    l = content.read(BUFFER_SIZE)
+    while l:
+        conn.send(l)
+        l = content.read(BUFFER_SIZE)
+    content.close()
+    conn.recv(BUFFER_SIZE)
+    conn.send(struct.pack("f", time.time() - start_time))
+    return
+
+def delf():
+    conn.send("1")
+    file_name_length = struct.unpack("h", conn.recv(2))[0]
+    file_name = conn.recv(file_name_length)
+    if os.path.isfile(file_name):
+        conn.send(struct.pack("i", 1))
+    else:
+        conn.send(struct.pack("i", -1))
+    confirm_delete = conn.recv(BUFFER_SIZE)
+    if confirm_delete == "Y":
+        try:
+            os.remove(file_name)
+            conn.send(struct.pack("i", 1))
+        except:
+            print ("Failed to delete {}".format(file_name))
+            conn.send(struct.pack("i", -1))
+    else:
+        print ("Delete abandoned by client!")
+        return
+
+
+def quit():
+    conn.send("1")
+    conn.close()
+    s.close()
+    os.execl(sys.executable, sys.executable, *sys.argv)
+
+
+while True:
+    print ("\n\nWaiting for instruction")
+    data = conn.recv(BUFFER_SIZE)
+    print ("\nRecieved instruction: {}".format(data))
+    if data == "UPLD":
+        put()
+    elif data == "LIST":
+        list_files()
+    elif data == "DWLD":
+        dwld()
+    elif data == "DELF":
+        delf()
+    elif data == "QUIT":
+        quit()
+    data = None
