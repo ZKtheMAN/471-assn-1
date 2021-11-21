@@ -87,7 +87,7 @@ def delf():
     else:
         conn.send(struct.pack("i", -1))
     confirm_delete = conn.recv(BUFFER_SIZE)
-    if confirm_delete == "Y":
+    if confirm_delete == b"Y":
         try:
             os.remove(file_name)
             conn.send(struct.pack("i", 1))
