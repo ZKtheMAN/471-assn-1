@@ -18,7 +18,6 @@ def conn():
         print(e)
         print("Connection unsuccessful. Make sure the server is online.")
 
-
 def list_files():
     print("Requesting files...\n")
     try:
@@ -66,7 +65,7 @@ def upld(file_name):
     try:
         s.recv(BUFFER_SIZE)
         s.send(struct.pack("h", sys.getsizeof(file_name)))
-        s.send(file_name)
+        s.send(file_name.encode("UTF8"))
         s.recv(BUFFER_SIZE)
         s.send(struct.pack("i", os.path.getsize(file_name)))
     except Exception as e:
@@ -100,7 +99,7 @@ def dwld(file_name):
     try:
         s.recv(BUFFER_SIZE)
         s.send(struct.pack("h", sys.getsizeof(file_name)))
-        s.send(file_name)
+        s.send(file_name.encode('UTF8'))
         file_size = struct.unpack("i", s.recv(4))[0]
         if file_size == -1:
             print ("Couldn't open file. Make sure the file name was spelled correctly")
@@ -140,7 +139,7 @@ def delf(file_name):
         return
     try:
         s.send(struct.pack("h", sys.getsizeof(file_name)))
-        s.send(file_name)
+        s.send(file_name.encode("UTF8"))
     except Exception as e:
         print(e)
         print ("Couldn't send file details")

@@ -24,7 +24,7 @@ def list_files():
     total_directory_size = 0
     for i in listing:
         conn.send(struct.pack("i", sys.getsizeof(i)))
-        conn.send(i)
+        conn.send(i.encode("UTF8"))
         conn.send(struct.pack("i", os.path.getsize(i)))
         total_directory_size += os.path.getsize(i)
         conn.recv(BUFFER_SIZE)
