@@ -24,7 +24,7 @@ def list_files():
     total_directory_size = 0
     for i in listing:
         conn.send(struct.pack("i", sys.getsizeof(i)))
-        conn.send(i)
+        conn.send(i.encode('utf-8'))
         conn.send(struct.pack("i", os.path.getsize(i)))
         total_directory_size += os.path.getsize(i)
         conn.recv(BUFFER_SIZE)
@@ -34,10 +34,10 @@ def list_files():
     return
 
 def put():
-    conn.send("1")
+    conn.send(b"1")
     file_name_size = struct.unpack("h", conn.recv(2))[0]
     file_name = conn.recv(file_name_size)
-    conn.send("1")
+    conn.send(b"1")
     file_size = struct.unpack("i", conn.recv(4))[0]
     start_time = time.time()
     output_file = open(file_name, "wb")
@@ -54,7 +54,7 @@ def put():
     return
 
 def dwld():
-    conn.send("1")
+    conn.send(b"1")
     file_name_length = struct.unpack("h", conn.recv(2))[0]
     print (file_name_length)
     file_name = conn.recv(file_name_length)
@@ -79,7 +79,7 @@ def dwld():
     return
 
 def delf():
-    conn.send("1")
+    conn.send(b"1")
     file_name_length = struct.unpack("h", conn.recv(2))[0]
     file_name = conn.recv(file_name_length)
     if os.path.isfile(file_name):
@@ -101,7 +101,7 @@ def delf():
 
 
 def quit():
-    conn.send("1")
+    conn.send(b"1")
     conn.close()
     s.close()
     os.execl(sys.executable, sys.executable, *sys.argv)
@@ -111,14 +111,14 @@ while True:
     print ("\n\nWaiting for instruction")
     data = conn.recv(BUFFER_SIZE)
     print ("\nRecieved instruction: {}".format(data))
-    if data == "UPLD":
+    if data == b"UPLD":
         put()
-    elif data == "LIST":
+    elif data == b"LIST":
         list_files()
-    elif data == "DWLD":
+    elif data == b"DWLD":
         dwld()
-    elif data == "DELF":
+    elif data == b"DELF":
         delf()
-    elif data == "QUIT":
+    elif data == b"QUIT":
         quit()
     data = None

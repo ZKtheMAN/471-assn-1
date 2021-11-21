@@ -22,7 +22,7 @@ def conn():
 def list_files():
     print("Requesting files...\n")
     try:
-        s.send("LIST")
+        s.send(b"LIST")
     except Exception as e:
         print(e)
         print("Connection unsuccessful. Make sure the server is online.")
@@ -34,7 +34,7 @@ def list_files():
             file_name = s.recv(file_name_size)
             file_size = struct.unpack("i", s.recv(4))[0]
             print("\t{} - {}b".format(file_name, file_size))
-            s.send("1")
+            s.send(b"1")
         total_directory_size = struct.unpack("i", s.recv(4))[0]
         print("Size: {}b".format(total_directory_size))
     except Exception as e:
@@ -42,7 +42,7 @@ def list_files():
         print("No listing found")
         return
     try:
-        s.send("1")
+        s.send(b"1")
         return
     except Exception as e:
         print(e)
@@ -58,7 +58,7 @@ def upld(file_name):
         print ("Couldn't open file. Make sure the file name was spelled correctly.")
         return
     try:
-        s.send("UPLD")
+        s.send(b"UPLD")
     except Exception as e:
         print(e)
         print("Couldn't make server request. Make sure the server is running.")
@@ -92,7 +92,7 @@ def upld(file_name):
 def dwld(file_name):
     print ("Downloading file: {}".format(file_name))
     try:
-        s.send("DWLD")
+        s.send(b"DWLD")
     except Exception as e:
         print(e)
         print ("Couldn't make server request. Make sure the server is running.")
@@ -109,7 +109,7 @@ def dwld(file_name):
         print(e)
         print ("Error checking file")
     try:
-        s.send("1")
+        s.send(b"1")
         output_file = open(file_name, "wb")
         bytes_recieved = 0
         print ("\nDownloading...")
@@ -119,7 +119,7 @@ def dwld(file_name):
             bytes_recieved += BUFFER_SIZE
         output_file.close()
         print ("Successfully downloaded {}".format(file_name))
-        s.send("1")
+        s.send(b"1")
         time_elapsed = struct.unpack("f", s.recv(4))[0]
         print ("Time elapsed: {}s\nFile size: {}b".format(time_elapsed, file_size))
     except Exception as e:
@@ -132,7 +132,7 @@ def dwld(file_name):
 def delf(file_name):
     print ("Deleting file: {}...".format(file_name))
     try:
-        s.send("DELF")
+        s.send(b"DELF")
         s.recv(BUFFER_SIZE)
     except Exception as e:
         print(e)
@@ -165,7 +165,7 @@ def delf(file_name):
         return
     try:
         if confirm_delete == "Y" or confirm_delete == "YES":
-            s.send("Y")
+            s.send(b"Y")
             delete_status = struct.unpack("i", s.recv(4))[0]
             if delete_status == 1:
                 print("File successfully deleted")
@@ -174,7 +174,7 @@ def delf(file_name):
                 print("File failed to delete")
                 return
         else:
-            s.send("N")
+            s.send(b"N")
             print("Delete not completed: User error")
             return
     except Exception as e:
@@ -183,7 +183,7 @@ def delf(file_name):
         return
 
 def quit():
-    s.send("QUIT")
+    s.send(b"QUIT")
     s.recv(BUFFER_SIZE)
     s.close()
     print("Server connection ended")
