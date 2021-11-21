@@ -220,7 +220,7 @@ def main():
                 print("Error: Command incomplete!")
         elif user_input[0].upper() == "UPLD":
             try:
-                file_path = [s if s!= '' else ' ' for s in original_input[1:]].join()
+                file_path = ''.join([s if s!= '' else ' ' for s in original_input[1:]])
                 upld(file_path)
             except IndexError:
                 print("Error: Command incomplete!")
@@ -229,18 +229,18 @@ def main():
             pass
         elif user_input[0].upper() == "DWLD":
             try:
-                file_path = [s if s!= '' else ' ' for s in original_input[1:]].join()
+                file_path = ''.join([s if s!= '' else ' ' for s in original_input[1:]])
                 dwld(file_path)
             except IndexError:
                 print("Error: Command incomplete!")
         elif user_input[0].upper() == "DELF":
             try:
-                file_path = [s if s!= '' else ' ' for s in original_input[1:]].join()
-                delete_file(file_path)
+                file_path = ''.join([s if s!= '' else ' ' for s in original_input[1:]])
+                delf(file_path)
             except IndexError:
                 print("Error: Command incomplete!")
         elif user_input[0].upper() == "QUIT":
-            quit_client()
+            quit()
             running = False
         else:
             print("ERROR: Invalid function!")
