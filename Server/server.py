@@ -91,7 +91,8 @@ def delf():
         try:
             os.remove(file_name)
             conn.send(struct.pack("i", 1))
-        except:
+        except Exception as e:
+            print(e)
             print ("Failed to delete {}".format(file_name))
             conn.send(struct.pack("i", -1))
     else:

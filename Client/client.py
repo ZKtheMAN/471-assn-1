@@ -14,7 +14,8 @@ def conn():
     try:
         s.connect((TCP_IP, TCP_PORT))
         print("Connection successful")
-    except:
+    except Exception as e:
+        print(e)
         print("Connection unsuccessful. Make sure the server is online.")
 
 
@@ -22,7 +23,8 @@ def list_files():
     print("Requesting files...\n")
     try:
         s.send("LIST")
-    except:
+    except Exception as e:
+        print(e)
         print("Connection unsuccessful. Make sure the server is online.")
         return
     try:
@@ -35,13 +37,15 @@ def list_files():
             s.send("1")
         total_directory_size = struct.unpack("i", s.recv(4))[0]
         print("Size: {}b".format(total_directory_size))
-    except:
+    except Exception as e:
+        print(e)
         print("No listing found")
         return
     try:
         s.send("1")
         return
-    except:
+    except Exception as e:
+        print(e)
         print("No server confirmation")
         return
 
@@ -49,12 +53,14 @@ def upld(file_name):
     print ("\nUploading the file to the server: {}...".format(file_name))
     try:
         content = open(file_name, "rb")
-    except:
+    except Exception as e:
+        print(e)
         print ("Couldn't open file. Make sure the file name was spelled correctly.")
         return
     try:
         s.send("UPLD")
-    except:
+    except Exception as e:
+        print(e)
         print("Couldn't make server request. Make sure the server is running.")
         return
     try:
@@ -63,7 +69,8 @@ def upld(file_name):
         s.send(file_name)
         s.recv(BUFFER_SIZE)
         s.send(struct.pack("i", os.path.getsize(file_name)))
-    except:
+    except Exception as e:
+        print(e)
         print("Error: Cannot send file details")
     try:
         l = content.read(BUFFER_SIZE)
@@ -75,19 +82,19 @@ def upld(file_name):
         upload_time = struct.unpack("f", s.recv(4))[0]
         upload_size = struct.unpack("i", s.recv(4))[0]
         print("\nSent file: {}\nTime taken: {}s\nFile size: {}b".format(file_name, upload_time, upload_size))
-    except:
+    except Exception as e:
+        print(e)
         print("Error sending file")
         return
     return
 
-def quit_client():
-    print("Qutting.")
 
 def dwld(file_name):
     print ("Downloading file: {}".format(file_name))
     try:
         s.send("DWLD")
-    except:
+    except Exception as e:
+        print(e)
         print ("Couldn't make server request. Make sure the server is running.")
         return
     try:
@@ -98,7 +105,8 @@ def dwld(file_name):
         if file_size == -1:
             print ("Couldn't open file. Make sure the file name was spelled correctly")
             return
-    except:
+    except Exception as e:
+        print(e)
         print ("Error checking file")
     try:
         s.send("1")
@@ -114,7 +122,8 @@ def dwld(file_name):
         s.send("1")
         time_elapsed = struct.unpack("f", s.recv(4))[0]
         print ("Time elapsed: {}s\nFile size: {}b".format(time_elapsed, file_size))
-    except:
+    except Exception as e:
+        print(e)
         print ("Error downloading file")
         return
     return
@@ -125,13 +134,15 @@ def delf(file_name):
     try:
         s.send("DELF")
         s.recv(BUFFER_SIZE)
-    except:
+    except Exception as e:
+        print(e)
         print ("Couldn't make server request. Make sure the server is running.")
         return
     try:
         s.send(struct.pack("h", sys.getsizeof(file_name)))
         s.send(file_name)
-    except:
+    except Exception as e:
+        print(e)
         print ("Couldn't send file details")
         return
     try:
@@ -139,7 +150,8 @@ def delf(file_name):
         if file_exists == -1:
             print ("The file does not exist on server")
             return
-    except:
+    except Exception as e:
+        print(e)
         print ("Couldn't find file.")
         return
     try:
@@ -147,7 +159,8 @@ def delf(file_name):
         while confirm_delete != "Y" and confirm_delete != "N" and confirm_delete != "YES" and confirm_delete != "NO":
             print("Command not recognised, try again")
             confirm_delete = input("Are you sure you want to delete {}? (Y/N)\n".format(file_name)).upper()
-    except:
+    except Exception as e:
+        print(e)
         print("Couldn't confirm deletion status")
         return
     try:
@@ -164,7 +177,8 @@ def delf(file_name):
             s.send("N")
             print("Delete not completed: User error")
             return
-    except:
+    except Exception as e:
+        print(e)
         print("Couldn't delete file")
         return
 
@@ -185,9 +199,6 @@ def quit():
        #"\nDELF file_path : Delete a file"
        #"\nQUIT           : Exit the program")
 
-
-def delete_file(path):
-    print("Deleting" + path)
 
 def main():
     running = True
